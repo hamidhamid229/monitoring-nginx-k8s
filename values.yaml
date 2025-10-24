@@ -1,0 +1,61 @@
+prometheus:
+  prometheusSpec:
+    retention: 7d
+    serviceMonitorSelectorNilUsesHelmValues: false
+    podMonitorSelectorNilUsesHelmValues: false
+    scrapeInterval: 30s
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: "nfs-client"
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 8Gi
+    additionalScrapeConfigs:
+      - job_name: 'nginx-exporter'
+        scrape_interval: 15s
+        static_configs:
+          - targets: ['nginx-exporter-service.default.svc.cluster.local:9113']
+
+grafana:
+  enabled: true
+  adminUser: admin
+  adminPassword: admin
+  service:
+    type: NodePort
+  initChownData:
+    enabled: false
+  podSecurityContext:
+    fsGroup: 472
+    runAsUser: 0
+  persistence:
+    enabled: true
+    type: pvc
+    storageClassName: "nfs-client"
+    accessModes:
+      - ReadWriteOnce
+    size: 2Gi
+
+alertmanager:
+  alertmanagerSpec:
+    storage:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: "nfs-client"
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 2Gi
+
+prometheus-node-exporter:
+  enabled: true
+  service:
+    port: 9100
+
+kube-state-metrics:
+  enabled: true
+
+prometheus-pushgateway:
+  enabled: false
+
